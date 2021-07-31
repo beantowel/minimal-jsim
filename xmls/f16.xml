@@ -6,10 +6,10 @@
     <author> Erik Hofman </author>
     <filecreationdate> 2001-12-28 </filecreationdate>
     <version> $Revision: 1.95 $ </version>
-    <license>
+    <!-- <license>
       <licenseName>GPL (General Public License)</licenseName>
       <licenseURL>http://www.gnu.org/licenses/gpl.html</licenseURL>
-    </license>
+    </license> -->
     <description> Models an F-16A Block-32 (Basic US configuration) </description>
     <note>
    This model was created using data that is, or has been, publically

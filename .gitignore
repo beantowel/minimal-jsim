@@ -9,4 +9,6 @@ artifacts/
 *.userprefs
 *DS_Store
 *.sln.ide
+*.exe
 .vscode
+.vs

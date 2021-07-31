@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
   <xs:annotation>
-    <xs:documentation>
-      The JSBSim v2.0 configuration file format (JSBSim-ML) is the medium for describing 
+    <xs:documentation> The JSBSim v2.0 configuration file format (JSBSim-ML) is the medium for describing 
       aircraft flight characteristics to the JSBSim code. For more information about JSBSim, see the
-      web site at:
-      <a href="http://www.jsbsim.org">www.jsbsim.org</a>
-      .
-      <p />
+      web site at: <a href="http://www.jsbsim.org">www.jsbsim.org</a>.
+      <p/>
       The config file format stores and conveys the characteristics of any unique aircraft to the JSBSim
       executable. The information that is specified in the configuration file includes:
       <ul>
@@ -22,7 +19,7 @@
         <li>Aerodynamics</li>
         <li>Input/Output</li>
       </ul>
-      <p />
+      <p/>
       The basic structure of the configuration file at the highest level is shown beginning with the
       fdm_config element definition.
     </xs:documentation>
@@ -47,7 +44,7 @@
         <!--The external reactions information for the aircraft model. -->
         <xs:element ref="propulsion" minOccurs="0" />
         <!-- The propulsion system information for the aircraft model. -->
-        <xs:element ref="system" minOccurs="0" maxOccurs="unbounded" />
+        <xs:element ref="system" minOccurs="0" maxOccurs="unbounded"/>
         <!-- The systems reference -->
         <xs:element ref="autopilot" minOccurs="0" />
         <!-- The autopilot definition for the aircraft model. -->
@@ -373,7 +370,7 @@
       </xs:simpleContent>
     </xs:complexType>
   </xs:element>
-
+  
   <!-- MASS BALANCE ELEMENT -->
   <xs:element name="mass_balance">
     <xs:annotation>
@@ -558,30 +555,30 @@
   <xs:element name="z" type="xs:double" />
 
   <!-- Buoyant forces section -->
-  <xs:element name="buoyant_forces"></xs:element>
+  <xs:element name="buoyant_forces">
+    
+  </xs:element>
 
   <!-- The systems definition -->
   <xs:element name="system">
-    <xs:annotation>
-      <xs:documentation>
+    <xs:annotation><xs:documentation>
       The system definition can be present any number of times in an aircraft definition. This
       section is used to define an arbitrary system, such as navigation, guidance, or control 
       avionics, electrical systems, etc. The system, autopilot, and flight_control sections of a
       configuration file are all built the same way, using channel elements that contain strings
       of component definitions.
-      </xs:documentation>
-    </xs:annotation>
+    </xs:documentation></xs:annotation>
     <xs:complexType>
-      <xs:choice minOccurs="0" maxOccurs="unbounded">
-        <xs:element ref="property" />
-        <xs:element ref="sensor" />
-        <xs:element ref="channel" />
-      </xs:choice>
-      <xs:attribute name="name" use="optional" type="xs:string" />
-      <xs:attribute name="file" use="optional" type="xs:string" />
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="property" />
+      <xs:element ref="sensor" />
+      <xs:element ref="channel" />
+    </xs:choice>
+      <xs:attribute name="name" use="optional" type="xs:string"/>
+      <xs:attribute name="file" use="optional" type="xs:string"/>
     </xs:complexType>
   </xs:element>
-
+  
   <!-- AUTOPILOT SECTION -->
   <xs:element name="autopilot">
     <xs:annotation>
@@ -652,35 +649,35 @@
       <xs:attribute name="name" use="optional" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Channel -->
-
+  
   <xs:element name="channel">
     <xs:complexType>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
-        <xs:element ref="actuator" />
+        <xs:element ref="actuator"/>
         <xs:element ref="aerosurface_scale" />
         <xs:element ref="integrator" />
         <xs:element ref="kinematic" />
-        <xs:element ref="lag_filter" />
+        <xs:element ref="lag_filter"/>
         <xs:element ref="lead_lag_filter" />
-        <xs:element ref="pid" />
+        <xs:element ref="pid"/>
         <xs:element ref="pure_gain" />
-        <xs:element ref="scheduled_gain" />
+        <xs:element ref="scheduled_gain"/>
         <xs:element ref="second_order_filter" />
-        <xs:element ref="sensor" />
+        <xs:element ref="sensor"/>
         <xs:element ref="summer" />
-        <xs:element ref="switch" />
+        <xs:element ref="switch"/>
         <xs:element ref="washout_filter" />
-        <xs:element ref="deadband" />
-        <xs:element ref="fcs_function" />
+        <xs:element ref="deadband"/>
+        <xs:element ref="fcs_function"/>
       </xs:choice>
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Lag filter -->
-
+  
   <xs:element name="lag_filter">
     <xs:complexType>
       <xs:all>
@@ -692,23 +689,23 @@
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Summer -->
-
+  
   <xs:element name="summer">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="input" type="xs:string" maxOccurs="unbounded" />
-        <xs:element name="bias" type="xs:float" minOccurs="0" />
-        <xs:element ref="clipto" minOccurs="0" />
+        <xs:element name="input" type="xs:string" maxOccurs="unbounded"/>
+        <xs:element name="bias" type="xs:float" minOccurs="0"/>
+        <xs:element ref="clipto" minOccurs="0"/>
         <xs:element name="output" minOccurs="0" type="xs:string" />
       </xs:sequence>
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Aerosurface scale -->
-
+  
   <xs:element name="aerosurface_scale">
     <xs:annotation>
       <xs:documentation>
@@ -734,9 +731,9 @@
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Kinematic device -->
-
+  
   <xs:element name="kinematic">
     <xs:complexType>
       <xs:all>
@@ -763,9 +760,9 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Lead lag filter -->
-
+  
   <xs:element name="lead_lag_filter">
     <xs:complexType>
       <xs:all>
@@ -780,9 +777,9 @@
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Washout filter -->
-
+  
   <xs:element name="washout_filter">
     <xs:complexType>
       <xs:all>
@@ -794,9 +791,9 @@
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Integrator -->
-
+  
   <xs:element name="integrator">
     <xs:complexType>
       <xs:all>
@@ -809,25 +806,25 @@
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- PID controller -->
-
+  
   <xs:element name="pid">
     <xs:complexType>
       <xs:all>
         <xs:element name="input" type="xs:string" minOccurs="1" maxOccurs="1" />
-        <xs:element name="kp" type="xs:float" minOccurs="0" />
-        <xs:element name="ki" type="xs:float" minOccurs="0" />
-        <xs:element name="kd" type="xs:float" minOccurs="0" />
-        <xs:element name="trigger" type="xs:string" minOccurs="0" />
+        <xs:element name="kp" type="xs:float" minOccurs="0"/>
+        <xs:element name="ki" type="xs:float" minOccurs="0"/>
+        <xs:element name="kd" type="xs:float" minOccurs="0"/>
+        <xs:element name="trigger" type="xs:string" minOccurs="0"/>
         <xs:element ref="clipto" minOccurs="0" maxOccurs="1" />
         <xs:element name="output" minOccurs="0" maxOccurs="1" type="xs:string" />
       </xs:all>
-      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="name" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
   <!-- Second order filter -->
-
+  
   <xs:element name="second_order_filter">
     <xs:complexType>
       <xs:all>
@@ -844,9 +841,9 @@
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Pure gain -->
-
+  
   <xs:element name="pure_gain">
     <xs:complexType>
       <xs:all>
@@ -862,9 +859,9 @@
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Scheduled gain -->
-
+  
   <xs:element name="scheduled_gain">
     <xs:complexType>
       <xs:all>
@@ -881,9 +878,9 @@
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Switch -->
-
+  
   <xs:element name="switch">
     <xs:complexType>
       <xs:sequence>
@@ -896,27 +893,27 @@
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
-
+  
   <!-- Sensor -->
-
+  
   <xs:element name="sensor">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="input" type="xs:string" maxOccurs="1" />
-        <xs:element name="lag" type="xs:float" maxOccurs="1" />
-        <xs:element ref="noise" maxOccurs="1" />
-        <xs:element ref="quantization" maxOccurs="1" />
-        <xs:element name="drift_rate" type="xs:float" maxOccurs="1" />
+        <xs:element name="input" type="xs:string" maxOccurs="1"/>
+        <xs:element name="lag" type="xs:float" maxOccurs="1"/>        
+        <xs:element ref="noise" maxOccurs="1"/>
+        <xs:element ref="quantization" maxOccurs="1"/>
+        <xs:element name="drift_rate" type="xs:float" maxOccurs="1"/>
         <xs:element name="bias" type="xs:float" maxOccurs="1" />
-        <xs:element ref="clipto" maxOccurs="1" />
-        <xs:element name="output" maxOccurs="1" />
+        <xs:element ref="clipto" maxOccurs="1"/>
+        <xs:element name="output" maxOccurs="1"/>
       </xs:sequence>
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
   </xs:element>
 
   <!-- Actuator -->
-
+  
   <xs:element name="actuator">
     <xs:annotation>
       <xs:documentation>
@@ -928,12 +925,12 @@
     <xs:complexType>
       <xs:all>
         <xs:element name="input" minOccurs="1" type="xs:string" />
-        <xs:element name="lag" type="xs:float" minOccurs="0" />
-        <xs:element name="rate_limit" type="xs:float" minOccurs="0" />
-        <xs:element name="bias" type="xs:float" minOccurs="0" />
-        <xs:element name="deadband_width" type="xs:float" minOccurs="0" />
-        <xs:element name="hysteresis_width" type="xs:float" minOccurs="0" />
-        <xs:element ref="clipto" minOccurs="0" />
+        <xs:element name="lag" type="xs:float" minOccurs="0"/>
+        <xs:element name="rate_limit" type="xs:float" minOccurs="0"/>
+        <xs:element name="bias" type="xs:float" minOccurs="0"/>
+        <xs:element name="deadband_width" type="xs:float" minOccurs="0"/>
+        <xs:element name="hysteresis_width" type="xs:float" minOccurs="0"/>
+        <xs:element ref="clipto" minOccurs="0"/>
         <xs:element name="output" minOccurs="0" type="xs:string" />
       </xs:all>
       <xs:attribute name="name" use="required" type="xs:string" />
@@ -941,13 +938,13 @@
   </xs:element>
 
   <!-- Deadband -->
-
+  
   <xs:element name="deadband">
     <xs:complexType>
       <xs:all>
-        <xs:element name="input" type="xs:string" />
-        <xs:element name="width" type="xs:float" />
-        <xs:element ref="clipto" minOccurs="0" />
+        <xs:element name="input" type="xs:string"/>
+        <xs:element name="width" type="xs:float"/>
+        <xs:element ref="clipto" minOccurs="0"/>
         <xs:element name="output" minOccurs="0" type="xs:string" />
       </xs:all>
       <xs:attribute name="name" use="required" type="xs:string" />
@@ -958,14 +955,14 @@
   <xs:element name="fcs_function">
     <xs:complexType>
       <xs:all>
-        <xs:element name="input" type="xs:string" minOccurs="0" />
-        <xs:element ref="function" />
-        <xs:element ref="clipto" minOccurs="0" />
+        <xs:element name="input" type="xs:string" minOccurs="0"/>
+        <xs:element ref="function"/>
+        <xs:element ref="clipto" minOccurs="0"/>
         <xs:element name="output" minOccurs="0" type="xs:string" />
       </xs:all>
       <xs:attribute name="name" use="required" type="xs:string" />
     </xs:complexType>
-
+    
   </xs:element>
 
   <!--
@@ -1008,7 +1005,7 @@
         the total span about zero where the input will be mapped to zero output.</xs:documentation>
     </xs:annotation>
   </xs:element>
-
+  
   <xs:element name="noise">
     <xs:annotation>
       <xs:documentation>
@@ -1021,8 +1018,8 @@
           <xs:attribute name="variation">
             <xs:simpleType>
               <xs:restriction base="xs:string">
-                <xs:enumeration value="PERCENT" />
-                <xs:enumeration value="ABSOLUTE" />
+                <xs:enumeration value="PERCENT"/>
+                <xs:enumeration value="ABSOLUTE"/>
               </xs:restriction>
             </xs:simpleType>
           </xs:attribute>
@@ -1034,11 +1031,11 @@
   <xs:element name="quantization">
     <xs:complexType>
       <xs:all>
-        <xs:element name="bits" type="xs:int" />
-        <xs:element name="min" type="xs:float" />
-        <xs:element name="max" type="xs:float" />
+        <xs:element name="bits" type="xs:int"/>
+        <xs:element name="min" type="xs:float"/>
+        <xs:element name="max" type="xs:float"/>
       </xs:all>
-      <xs:attribute type="xs:string" name="name" />
+      <xs:attribute type="xs:string" name="name"/>
     </xs:complexType>
   </xs:element>
 
@@ -1094,23 +1091,23 @@
   <xs:element name="force">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="function" minOccurs="0" />
-        <xs:element ref="location" />
-        <xs:element ref="direction" minOccurs="0" />
+        <xs:element ref="function" minOccurs="0"/>
+        <xs:element ref="location"/>
+        <xs:element ref="direction" minOccurs="0"/>
       </xs:sequence>
-      <xs:attribute name="name" type="xs:string" />
+      <xs:attribute name="name" type="xs:string"/>      
       <xs:attribute name="frame">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:enumeration value="BODY" />
-            <xs:enumeration value="LOCAL" />
-            <xs:enumeration value="WIND" />
-          </xs:restriction>
-        </xs:simpleType>
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="BODY"/>
+              <xs:enumeration value="LOCAL"/>
+              <xs:enumeration value="WIND"/>
+            </xs:restriction>
+          </xs:simpleType>
       </xs:attribute>
     </xs:complexType>
   </xs:element>
-
+  
   <!--GROUND REACTIONS SECTION -->
   <xs:element name="ground_reactions">
     <xs:complexType mixed="true">
@@ -1119,7 +1116,7 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-
+  
   <xs:element name="contact">
     <xs:complexType>
       <xs:all>
@@ -1191,8 +1188,8 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element ref="force_lag_filter" minOccurs="0" />
-        <xs:element name="wheel_slip_filter" type="xs:float" minOccurs="0" />
+        <xs:element ref="force_lag_filter" minOccurs="0"/>
+        <xs:element name="wheel_slip_filter" type="xs:float" minOccurs="0"/>
       </xs:all>
       <xs:attribute name="name" use="required" type="xs:string" />
       <xs:attribute name="type" use="required">
@@ -1205,19 +1202,19 @@
       </xs:attribute>
     </xs:complexType>
   </xs:element>
-
+  
   <xs:element name="brake_group" type="xs:NCName" />
   <xs:element name="retractable" type="xs:integer" />
-
+  
   <xs:element name="force_lag_filter">
     <xs:complexType>
       <xs:all>
-        <xs:element name="rolling" type="xs:float" maxOccurs="1" />
-        <xs:element name="side" type="xs:float" maxOccurs="1" />
+        <xs:element name="rolling" type="xs:float" maxOccurs="1"/>
+        <xs:element name="side" type="xs:float" maxOccurs="1"/>
       </xs:all>
     </xs:complexType>
   </xs:element>
-
+  
   <!-- PROPULSION SECTION -->
   <xs:element name="propulsion">
     <xs:complexType>
@@ -1341,7 +1338,22 @@
     </xs:complexType>
   </xs:element>
   <!-- Functions -->
-  <xs:complexType name="tFunc_group">
+
+  <xs:group name="func_group">
+    <xs:choice>
+      <xs:element name="func_group_elem"/>
+    </xs:choice>
+  </xs:group>
+  <xs:element name="func_group_base">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:choice>
+          <xs:group ref="func_group_real"/>
+        </xs:choice>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:group name="func_group_real">
     <xs:choice>
       <xs:element ref="table" />
       <xs:element ref="product" />
@@ -1362,59 +1374,70 @@
       <xs:element ref="avg" />
       <xs:element ref="fraction" />
       <xs:element ref="integer" />
-      <xs:element ref="mod" />
-      <xs:element name="random" />
+      <xs:element ref="mod"/>
+      <xs:element name="random"/>
     </xs:choice>
-  </xs:complexType>
+  </xs:group>
+
   <xs:element name="function">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="description" minOccurs="0" />
-        <xs:element name="func_group" type="tFunc_group" />
+        <xs:element ref="description" minOccurs="0"/>
+        <xs:choice>
+          <xs:group ref="func_group" />
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="name" use="optional" />
     </xs:complexType>
   </xs:element>
   <xs:element name="product">
     <xs:complexType>
-      <xs:choice maxOccurs="unbounded">
-        <xs:element name="func_group" type="tFunc_group" />
-        <xs:element ref="value" />
-        <xs:element ref="property" />
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice maxOccurs="unbounded">
+          <xs:group ref="func_group" />
+          <xs:element ref="value" />
+          <xs:element ref="property" />
+        </xs:choice>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="difference">
     <xs:complexType>
-      <xs:choice maxOccurs="2">
-        <xs:element name="func_group" type="tFunc_group" />
-        <xs:element ref="value" />
-        <xs:element ref="property" />
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice maxOccurs="2">
+          <xs:group ref="func_group" />
+          <xs:element ref="value" />
+          <xs:element ref="property" />
+        </xs:choice>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="sum">
     <xs:complexType>
-      <xs:choice maxOccurs="unbounded">
-        <xs:element name="func_group" type="tFunc_group" />
-        <xs:element ref="value" />
-        <xs:element ref="property" />
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice maxOccurs="unbounded">
+          <xs:group ref="func_group" />
+          <xs:element ref="value" />
+          <xs:element ref="property" />
+        </xs:choice>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="quotient">
     <xs:complexType>
-      <xs:choice maxOccurs="2">
-        <xs:element name="func_group" type="tFunc_group" />
-        <xs:element ref="value" />
-        <xs:element ref="property" />
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice maxOccurs="2">
+          <xs:group ref="func_group" />
+          <xs:element ref="value" />
+          <xs:element ref="property" />
+        </xs:choice>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="abs">
     <xs:complexType>
       <xs:choice maxOccurs="1" minOccurs="1">
-        <xs:element name="func_group" type="tFunc_group" />
+        <xs:group ref="func_group" />
         <xs:element ref="value" />
         <xs:element ref="property" />
       </xs:choice>
@@ -1422,17 +1445,19 @@
   </xs:element>
   <xs:element name="pow">
     <xs:complexType>
-      <xs:choice maxOccurs="2" minOccurs="2">
-        <xs:element name="func_group" type="tFunc_group" />
-        <xs:element ref="value" />
-        <xs:element ref="property" />
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice maxOccurs="2" minOccurs="2">
+          <xs:group ref="func_group" />
+          <xs:element ref="value" />
+          <xs:element ref="property" />
+        </xs:choice>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="sin">
     <xs:complexType>
       <xs:choice maxOccurs="1" minOccurs="1">
-        <xs:element name="func_group" type="tFunc_group" />
+        <xs:group ref="func_group" />
         <xs:element ref="value" />
         <xs:element ref="property" />
       </xs:choice>
@@ -1441,7 +1466,7 @@
   <xs:element name="cos">
     <xs:complexType>
       <xs:choice maxOccurs="1" minOccurs="1">
-        <xs:element name="func_group" type="tFunc_group" />
+        <xs:group ref="func_group" />
         <xs:element ref="value" />
         <xs:element ref="property" />
       </xs:choice>
@@ -1450,7 +1475,7 @@
   <xs:element name="tan">
     <xs:complexType>
       <xs:choice maxOccurs="1" minOccurs="1">
-        <xs:element name="func_group" type="tFunc_group" />
+        <xs:group ref="func_group" />
         <xs:element ref="value" />
         <xs:element ref="property" />
       </xs:choice>
@@ -1459,7 +1484,7 @@
   <xs:element name="asin">
     <xs:complexType>
       <xs:choice maxOccurs="1" minOccurs="1">
-        <xs:element name="func_group" type="tFunc_group" />
+        <xs:group ref="func_group" />
         <xs:element ref="value" />
         <xs:element ref="property" />
       </xs:choice>
@@ -1468,7 +1493,7 @@
   <xs:element name="acos">
     <xs:complexType>
       <xs:choice maxOccurs="1" minOccurs="1">
-        <xs:element name="func_group" type="tFunc_group" />
+        <xs:group ref="func_group" />
         <xs:element ref="value" />
         <xs:element ref="property" />
       </xs:choice>
@@ -1477,7 +1502,7 @@
   <xs:element name="atan">
     <xs:complexType>
       <xs:choice maxOccurs="1" minOccurs="1">
-        <xs:element name="func_group" type="tFunc_group" />
+        <xs:group ref="func_group" />
         <xs:element ref="value" />
         <xs:element ref="property" />
       </xs:choice>
@@ -1485,44 +1510,52 @@
   </xs:element>
   <xs:element name="atan2">
     <xs:complexType>
-      <xs:choice maxOccurs="2" minOccurs="2">
-        <xs:element name="func_group" type="tFunc_group" />
-        <xs:element ref="value" />
-        <xs:element ref="property" />
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice maxOccurs="2" minOccurs="2">
+          <xs:group ref="func_group" />
+          <xs:element ref="value" />
+          <xs:element ref="property" />
+        </xs:choice>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="min">
     <xs:complexType>
-      <xs:choice maxOccurs="unbounded">
-        <xs:element name="func_group" type="tFunc_group" />
-        <xs:element ref="value" />
-        <xs:element ref="property" />
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice maxOccurs="unbounded">
+          <xs:group ref="func_group" />
+          <xs:element ref="value" />
+          <xs:element ref="property" />
+        </xs:choice>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="max">
     <xs:complexType>
-      <xs:choice maxOccurs="unbounded">
-        <xs:element name="func_group" type="tFunc_group" />
-        <xs:element ref="value" />
-        <xs:element ref="property" />
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice maxOccurs="unbounded">
+          <xs:group ref="func_group" />
+          <xs:element ref="value" />
+          <xs:element ref="property" />
+        </xs:choice>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="avg">
     <xs:complexType>
-      <xs:choice minOccurs="2" maxOccurs="unbounded">
-        <xs:element name="func_group" type="tFunc_group" />
-        <xs:element ref="value" />
-        <xs:element ref="property" />
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice minOccurs="2" maxOccurs="unbounded">
+          <xs:group ref="func_group" />
+          <xs:element ref="value" />
+          <xs:element ref="property" />
+        </xs:choice>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="fraction">
     <xs:complexType>
       <xs:choice>
-        <xs:element name="func_group" type="tFunc_group" />
+        <xs:group ref="func_group" />
         <xs:element ref="value" />
         <xs:element ref="property" />
       </xs:choice>
@@ -1531,9 +1564,8 @@
   <xs:element name="integer">
     <xs:complexType>
       <xs:choice>
-        <xs:element name="func_group" type="tFunc_group" />
+        <xs:group ref="func_group" />
         <xs:element ref="value" />
-        <xs:element ref="property" />
       </xs:choice>
     </xs:complexType>
   </xs:element>
@@ -1541,14 +1573,16 @@
 
   <xs:element name="mod">
     <xs:complexType>
-      <xs:choice maxOccurs="2" minOccurs="2">
-        <xs:element name="func_group" type="tFunc_group" />
-        <xs:element ref="value" />
-        <xs:element ref="property" />
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice maxOccurs="2" minOccurs="2">
+          <xs:group ref="func_group" />
+          <xs:element ref="value" />
+          <xs:element ref="property" />
+        </xs:choice>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
-
+  
   <xs:element name="orient">
     <xs:complexType>
       <xs:all>
