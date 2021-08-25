@@ -42,8 +42,6 @@ namespace MinimalJSim {
     }
 
     class MathUtil {
-        public const float eps = 1e-7f;
-
         static UInt32 GetNextIndex3(UInt32 x) {
             return (x + 1) % 3;
         }
@@ -54,7 +52,7 @@ namespace MinimalJSim {
             return new Quaternion(v[0], v[1], v[2], c);
         }
 
-        public static Vector3 Diagonalize(in Matrix4x4 m, out Quaternion massFrame) {
+        public static (Vector3, Quaternion) Diagonalize(in Matrix4x4 m) {
             // jacobi rotation using quaternions (from an idea of Stan Melax, with fix for precision issues)
 
             const UInt32 MAX_ITERS = 24;
@@ -90,23 +88,34 @@ namespace MinimalJSim {
                 q = Quaternion.Normalize(q * r);
             }
 
-            massFrame = q;
-            return new Vector3(d.m.M11, d.m.M22, d.m.M33);
+            return (new Vector3(d.m.M11, d.m.M22, d.m.M33), q);
         }
 
-        // SearchOrdered returns i so that seq[i] <= v <= seq[i+1]
-        // if v < seq[0], return i=-1
-        // if v > seq[-1], return i=-2
+
+
+        /// SearchOrdered returns i so that seq[i] <= v < seq[i+1].
+        /// if v < seq[0], return i=-1.
+        /// if v >= seq[-1], return i=-2.
         public static int SearchOrdered(float[] seq, float v) {
-            if (v - eps < seq[0]) {
+            if (v < seq[0]) {
                 return -1;
             }
-            for (int i = 0; i < seq.Length - 1; i++) {
-                if (v - eps < seq[i + 1]) {
-                    return i;
-                }
+            if (v >= seq[seq.Length - 1]) {
+                return -2;
             }
-            return -2;
+            if (seq.Length <= 10) {
+                for (int i = 0; i < seq.Length - 1; i++) {
+                    if (v < seq[i + 1]) {
+                        return i;
+                    }
+                }
+            } else {
+                int i = Array.BinarySearch(seq, v);
+                i = (i >= 0) ? i : ~i - 1;
+                return i;
+            }
+            Logger.Error("search ordered fail, seq={0}, v={1}", seq, v);
+            return -3;
         }
 
         public static float[] ReciprocalSeqDiff(float[] seq) {
@@ -115,6 +124,12 @@ namespace MinimalJSim {
                 x[i] = 1 / (seq[i + 1] - seq[i]);
             }
             return x;
+        }
+
+        public static void ScaleArray(float[] a, float scale) {
+            for (int i = 0; i < a.Length; i++) {
+                a[i] = a[i] * scale;
+            }
         }
     }
 }

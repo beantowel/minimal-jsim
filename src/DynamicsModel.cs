@@ -4,9 +4,13 @@ using System.Collections.Generic;
 namespace MinimalJSim {
     public class Property {
         public string identifier;
-        public float value;
+        float _value;
+        public float Value {
+            get => _value;
+            set => _value = value;
+        }
 
-        public Property(string _identifier) { identifier = _identifier; value = 0; }
+        public Property(string _identifier) { identifier = _identifier; _value = 0; }
 
         public string RootNode() {
             int i = identifier.IndexOf('/');
@@ -59,17 +63,14 @@ namespace MinimalJSim {
         }
     }
 
-    public class DynamicsModel {
-        public Vector3 inertiaTensor;
-        public Quaternion massFrame;
+    public partial class DynamicsModel {
         public SortedDictionary<string, Property> properties; // property's key should not contain unit
         public SortedDictionary<string, Function> functions;
-        Axis[] axes;
-        public Metrics metrics;
-        public Aero aero;
-        public Atmosphere atmosphere;
-        public Velocities velocities;
+        public Axis[] axes;
+        public Vehicle vehicle;
+        public Motion motion;
         public FlightControlSys fcs;
+        public Aero aero;
 
         public DynamicsModel() {
             properties = new SortedDictionary<string, Property>();
@@ -80,27 +81,39 @@ namespace MinimalJSim {
             }
         }
 
-        public Property GetProperty(string identifer) {
+        Property GetDefaultProperty(string identifer) {
             Property p;
             string uIdent = Property.WithoutUnit(identifer);
             if (properties.TryGetValue(uIdent, out p)) {
                 return p;
             }
+            // add default unit
+            identifer = (identifer.Length == uIdent.Length) ? identifer + "-1?" : identifer;
             p = new Property(identifer);
             properties.Add(uIdent, p);
             return p;
         }
 
-        public void AddFunction(Function f, AxisDimension axis) {
+        void AddFunction(Function f, AxisDimension axis) {
             axes[(int)axis].functions.Add(f);
             functions[f.identifier] = f;
         }
 
-        public Function GetFunction(string identifer) {
+        Function GetFunction(string identifer) {
             return functions[identifer];
         }
 
+        public void SetProperty(string identifier, float value) {
+            string uIdent = Property.WithoutUnit(identifier);
+            if (!properties.ContainsKey(identifier)) {
+                Logger.Warn("prop={0} not found", identifier);
+                return;
+            }
+            properties[uIdent].Value = value;
+        }
+
         public void UpdateProperty() {
+            motion.UpdateProperty(this);
             aero.UpdateProperty(this);
         }
     }

@@ -66,7 +66,7 @@ namespace MinimalJSim {
                 v *= func.Eval();
             }
             foreach (Property prop in properties) {
-                v *= prop.value;
+                v *= prop.Value;
             }
             return v;
         }
@@ -90,12 +90,22 @@ namespace MinimalJSim {
 
         public Table1() : base(FuncType.Table) { }
 
-        public void InitDiff() {
+        public Table1(in float[] _row, in float[] _value) : base(FuncType.Table) {
+            row = _row;
+            value = _value;
+            Init();
+        }
+
+        public void Init() {
+            MathUtil.ScaleArray(row, Units.ToMetric(var));
             rRowDiff = MathUtil.ReciprocalSeqDiff(row);
         }
 
         public override float Eval() {
-            float v = var.value;
+            return Eval(var.Value);
+        }
+
+        public float Eval(float v) {
             int i = MathUtil.SearchOrdered(row, v);
             switch (i) {
                 case -1:
@@ -121,14 +131,16 @@ namespace MinimalJSim {
 
         public Table2() : base(FuncType.Table) { }
 
-        public void InitDiff() {
+        public void Init() {
+            MathUtil.ScaleArray(row, Units.ToMetric(varRow));
+            MathUtil.ScaleArray(col, Units.ToMetric(varCol));
             rRowDiff = MathUtil.ReciprocalSeqDiff(row);
             rColDiff = MathUtil.ReciprocalSeqDiff(col);
         }
 
         public override float Eval() {
-            float vR = varRow.value;
-            float vC = varCol.value;
+            float vR = varRow.Value;
+            float vC = varCol.Value;
             int i = MathUtil.SearchOrdered(row, vR);
             int j = MathUtil.SearchOrdered(col, vC);
             switch (i, j) {
@@ -152,7 +164,7 @@ namespace MinimalJSim {
                 return value[i, idx] + (value[i + 1, idx] - value[i, idx]) * a;
             }
             float alpha = (vR - row[i]) * rRowDiff[i];
-            float beta = (vC - col[i]) * rColDiff[i];
+            float beta = (vC - col[j]) * rColDiff[j];
             float a10 = value[i + 1, j] - value[i, j];
             float a01 = value[i, j + 1] - value[i, j];
             float a11 = value[i + 1, j + 1] + value[i, j] - (value[i + 1, j] + value[i, j + 1]);
@@ -165,62 +177,62 @@ namespace MinimalJSim {
         }
     }
 
-    class UnaryOperator : Function {
-        public ItemType itemType;
-        public float value;
-        public Property property;
-        public Function f;
+    // class UnaryOperator : Function {
+    //     public ItemType itemType;
+    //     public float value;
+    //     public Property property;
+    //     public Function f;
 
-        public UnaryOperator(FuncType t) : base(t) { }
+    //     public UnaryOperator(FuncType t) : base(t) { }
 
-        public float Operate(float v) {
-            switch (fType) {
-                case FuncType.Abs:
-                    return (float)Math.Abs(v);
-                case FuncType.Acos:
-                    return (float)Math.Acos(v);
-                case FuncType.Asin:
-                    return (float)Math.Asin(v);
-                case FuncType.Atan:
-                    return (float)Math.Atan(v);
-                case FuncType.Cos:
-                    return (float)Math.Cos(v);
-                case FuncType.Fraction:
-                    return 1 / v;
-                case FuncType.Integer:
-                    return (int)v;
-                case FuncType.Sin:
-                    return (float)Math.Sin(v);
-                case FuncType.Tan:
-                    return (float)Math.Tan(v);
-                default:
-                    return 0;
-            }
-        }
+    //     public float Operate(float v) {
+    //         switch (fType) {
+    //             case FuncType.Abs:
+    //                 return (float)Math.Abs(v);
+    //             case FuncType.Acos:
+    //                 return (float)Math.Acos(v);
+    //             case FuncType.Asin:
+    //                 return (float)Math.Asin(v);
+    //             case FuncType.Atan:
+    //                 return (float)Math.Atan(v);
+    //             case FuncType.Cos:
+    //                 return (float)Math.Cos(v);
+    //             case FuncType.Fraction:
+    //                 return 1 / v;
+    //             case FuncType.Integer:
+    //                 return (int)v;
+    //             case FuncType.Sin:
+    //                 return (float)Math.Sin(v);
+    //             case FuncType.Tan:
+    //                 return (float)Math.Tan(v);
+    //             default:
+    //                 return 0;
+    //         }
+    //     }
 
-        public override float Eval() {
-            switch (itemType) {
-                case ItemType.Value:
-                    return value;
-                case ItemType.Property:
-                    return Operate(property.value);
-                case ItemType.Function:
-                    return Operate(f.Eval());
-                default:
-                    return 0;
-            }
-        }
+    //     public override float Eval() {
+    //         switch (itemType) {
+    //             case ItemType.Value:
+    //                 return value;
+    //             case ItemType.Property:
+    //                 return Operate(property.Value);
+    //             case ItemType.Function:
+    //                 return Operate(f.Eval());
+    //             default:
+    //                 return 0;
+    //         }
+    //     }
 
-        public override List<string> Dependency() {
-            switch (itemType) {
-                case ItemType.Property:
-                    return new List<string>() { property.identifier };
-                case ItemType.Function:
-                    return f.Dependency();
-                case ItemType.Value:
-                default:
-                    return new List<string>();
-            }
-        }
-    }
+    //     public override List<string> Dependency() {
+    //         switch (itemType) {
+    //             case ItemType.Property:
+    //                 return new List<string>() { property.identifier };
+    //             case ItemType.Function:
+    //                 return f.Dependency();
+    //             case ItemType.Value:
+    //             default:
+    //                 return new List<string>();
+    //         }
+    //     }
+    // }
 }

@@ -12,3 +12,5 @@ artifacts/
 *.exe
 .vscode
 .vs
+*cp.sh*
+*.meta

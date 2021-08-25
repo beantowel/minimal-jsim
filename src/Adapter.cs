@@ -3,7 +3,7 @@ using System.Numerics;
 using System.Collections.Generic;
 
 namespace MinimalJSim {
-    public partial class Adapter {
+    public partial class DynamicsModel {
         public static fdm_config Deserialize(string path) {
             System.Xml.Serialization.XmlSerializer reader =
                 new System.Xml.Serialization.XmlSerializer(typeof(fdm_config));
@@ -17,10 +17,9 @@ namespace MinimalJSim {
             Logger.Debug("start parse model");
 
             var model = new DynamicsModel();
-            // inertia tensor
-            model.inertiaTensor = InertiaTensor(InertiaMatrix(conf), out model.massFrame);
             // functions
             foreach (var func in conf.aerodynamics.function) {
+                // dummy axis
                 Function f = ParseFunction(model, func);
                 model.AddFunction(f, AxisDimension.Dummy);
             }
@@ -31,120 +30,114 @@ namespace MinimalJSim {
                     model.AddFunction(f, i);
                 }
             }
-            // metrics, aero, velocities
-            model.metrics = ParseMetrics(conf, model);
-            model.aero = ParseAero(model);
-            model.atmosphere = ParseAtmosphere(model);
-            model.velocities = ParseVelocities(model);
+            // inertia, metrics, aero, velocities
+            model.vehicle = ParseVehicle(conf, model);
+            model.motion = ParseMotion(model);
             model.fcs = ParseFCS(model);
-            // debug
-            foreach (Function func in model.functions.Values) {
-                Logger.Debug("func={0}, {1}", func.identifier, func.description);
-                Logger.DebugObj("dependency", func.Dependency());
-            }
-            foreach (Property prop in model.properties.Values) {
-                Logger.Debug("prop={0}, root={1}, end={2}, sub={3}, unit={4}, val={5}",
-                prop.identifier, prop.RootNode(), prop.EndNode(), prop.SubNodes(), prop.Unit(), prop.value);
-            }
+            model.aero = ParseAero(model);
             return model;
         }
 
-        public static Matrix4x4 InertiaMatrix(fdm_config conf) {
+
+
+
+
+        static Vehicle ParseVehicle(fdm_config conf, DynamicsModel model) {
+            Vehicle v = new Vehicle();
+            metrics cm = conf.metrics;
+
+            if (cm.wingarea != null) {
+                v.WingArea = model.GetDefaultProperty("metrics/Sw-1?");
+                v.WingArea.Value = (float)cm.wingarea.Value * Units.ToMetric(cm.wingarea.unit);
+            }
+            if (cm.wingspan != null) {
+                v.WingSpan = model.GetDefaultProperty("metrics/bw-1?");
+                v.WingSpan.Value = (float)cm.wingspan.Value * Units.ToMetric(cm.wingspan.unit);
+            }
+            if (cm.wing_incidence != null) {
+                v.WingIncidence = model.GetDefaultProperty("metrics/iw-deg");
+                v.WingIncidence.Value = (float)cm.wing_incidence.Value * Units.ToMetric(cm.wing_incidence.unit);
+            }
+            if (cm.chord != null) {
+                v.Chord = model.GetDefaultProperty("metrics/cbarw-1?");
+                v.Chord.Value = (float)cm.chord.Value * Units.ToMetric(cm.chord.unit);
+            }
+            if (cm.htailarea != null) {
+                v.HTailArea = model.GetDefaultProperty("metrics/Sh-1?");
+                v.HTailArea.Value = (float)cm.htailarea.Value * Units.ToMetric(cm.htailarea.unit);
+            }
+            if (cm.htailarm != null) {
+                v.HTailArm = model.GetDefaultProperty("metrics/lh-1?");
+                v.HTailArm.Value = (float)cm.htailarm.Value * Units.ToMetric(cm.htailarm.unit);
+            }
+            if (cm.vtailarea != null) {
+                v.VTailArea = model.GetDefaultProperty("metrics/Sv-1?");
+                v.VTailArea.Value = (float)cm.vtailarea.Value * Units.ToMetric(cm.vtailarea.unit);
+            }
+            if (cm.vtailarm != null) {
+                v.VTailArm = model.GetDefaultProperty("metrics/lv-1?");
+                v.VTailArm.Value = (float)cm.vtailarm.Value * Units.ToMetric(cm.vtailarm.unit);
+            }
+
+            v.locations = new Location[cm.location.Length];
+            for (int i = 0; i < cm.location.Length; i++) {
+                location loc = cm.location[i];
+                v.locations[i] = new Location(loc.name, (float)loc.x, (float)loc.y, (float)loc.z);
+                v.locations[i].loc *= Units.ToMetric(loc.unit);
+            }
+
             mass_balance m = conf.mass_balance;
             Matrix4x4 mat = new Matrix4x4(
                 (float)m.ixx.Value, (float)m.ixy.Value, (float)m.ixz.Value, 0,
                 (float)m.ixy.Value, (float)m.iyy.Value, (float)m.iyz.Value, 0,
                 (float)m.ixz.Value, (float)m.iyz.Value, (float)m.izz.Value, 0,
                 0, 0, 0, 0);
-            return mat * Units.ToMetric(m.ixx.unit);
-        }
-
-        public static Vector3 InertiaTensor(in Matrix4x4 inertiaMat, out Quaternion massFrame) {
-            return MathUtil.Diagonalize(inertiaMat, out massFrame);
-        }
-
-        static Metrics ParseMetrics(fdm_config conf, DynamicsModel model) {
-            metrics cm = conf.metrics;
-            Metrics m = new Metrics();
-            if (cm.wingarea is not null) {
-                m.WingArea = model.GetProperty("metrics/Sw-1?");
-                m.WingArea.value = (float)cm.wingarea.Value * Units.ToMetric(cm.wingarea.unit);
-            }
-            if (cm.wingspan is not null) {
-                m.WingSpan = model.GetProperty("metrics/bw-1?");
-                m.WingSpan.value = (float)cm.wingspan.Value * Units.ToMetric(cm.wingspan.unit);
-            }
-            // if (cm.wing_incidence is not null) {
-            //     m.WingArea = model.GetProperty("metrics/bw");
-            //     m.WingIncidence = (float)cm.wing_incidence.Value * Units.ToMetric(cm.wing_incidence.unit);
-            // }
-            if (cm.chord is not null) {
-                m.Chord = model.GetProperty("metrics/cbarw-1?");
-                m.Chord.value = (float)cm.chord.Value * Units.ToMetric(cm.chord.unit);
-            }
-            if (cm.htailarea is not null) {
-                m.HTailArea = model.GetProperty("Sh-1?");
-                m.HTailArea.value = (float)cm.htailarea.Value * Units.ToMetric(cm.htailarea.unit);
-            }
-            if (cm.htailarm is not null) {
-                m.HTailArm = model.GetProperty("lh-1?");
-                m.HTailArm.value = (float)cm.htailarm.Value * Units.ToMetric(cm.htailarm.unit);
-            }
-            if (cm.vtailarea is not null) {
-                m.VTailArea = model.GetProperty("Sv-1?");
-                m.VTailArea.value = (float)cm.vtailarea.Value * Units.ToMetric(cm.vtailarea.unit);
-            }
-            if (cm.vtailarm is not null) {
-                m.VTailArm = model.GetProperty("lv-1?");
-                m.VTailArm.value = (float)cm.vtailarm.Value * Units.ToMetric(cm.vtailarm.unit);
-            }
-
-            m.locations = new Location[cm.location.Length];
-            for (int i = 0; i < cm.location.Length; i++) {
-                location loc = cm.location[i];
-                float a = Units.ToMetric(loc.unit);
-                m.locations[i] = new Location(loc.name, (float)loc.x * a, (float)loc.y * a, (float)loc.z * a);
-            }
-            return m;
+            v.emptyWeight = model.GetDefaultProperty("inertia/empty-weight-1?");
+            v.emptyWeight.Value = (float)m.emptywt.Value * Units.ToMetric(m.emptywt.unit);
+            v.centerOfMass = new Vector3((float)m.location.x, (float)m.location.y, (float)m.location.z);
+            v.centerOfMass *= Units.ToMetric(m.location.unit);
+            v.inertiaMatrix = mat * Units.ToMetric(m.ixx.unit);
+            (v.inertiaTensor, v.massFrame) = MathUtil.Diagonalize(v.inertiaMatrix);
+            return v;
         }
 
         static Aero ParseAero(DynamicsModel model) {
             Aero aero = new Aero();
-            aero.alpha = model.GetProperty("aero/alpha-1?");
-            aero.beta = model.GetProperty("aero/beta-1?");
-            aero.bi2vel = model.GetProperty("aero/bi2vel-1?");
-            aero.ci2vel = model.GetProperty("aero/ci2vel-1?");
-            aero.kCLge = model.GetProperty("aero/function/kCLge-1?");
-            aero.hbMac = model.GetProperty("aero/h_b-mac-1?");
-            aero.qbar = model.GetProperty("aero/qbar-1?");
+            aero.alpha = model.GetDefaultProperty("aero/alpha-1?");
+            aero.beta = model.GetDefaultProperty("aero/beta-1?");
+            aero.bi2vel = model.GetDefaultProperty("aero/bi2vel-1?");
+            aero.ci2vel = model.GetDefaultProperty("aero/ci2vel-1?");
+            aero.kCLge = model.GetDefaultProperty("aero/function/kCLge-1?");
+            aero.hbMac = model.GetDefaultProperty("aero/h_b-mac-1?");
+            aero.qbar = model.GetDefaultProperty("aero/qbar-1?");
             aero.fnKCLge = model.GetFunction("aero/function/kCLge");
+            aero.rho = model.GetDefaultProperty("atmosphere/rho-1?");
+            aero.pressure = model.GetDefaultProperty("atmosphere/pressure-1?");
+            aero.temperature = model.GetDefaultProperty("atmosphere/T-1?");
+            aero.mach = model.GetDefaultProperty("velocities/mach-1?");
             return aero;
         }
 
-        static Atmosphere ParseAtmosphere(DynamicsModel model) {
-            Atmosphere a = new Atmosphere();
-            a.rho = model.GetProperty("atmosphere/rho-1?");
-            return a;
-        }
+        static Motion ParseMotion(DynamicsModel model) {
+            Motion v = new Motion();
+            v.p = model.GetDefaultProperty("velocities/p-aero-1?");
+            v.q = model.GetDefaultProperty("velocities/q-aero-1?");
+            v.r = model.GetDefaultProperty("velocities/r-aero-1?");
 
-        static Velocities ParseVelocities(DynamicsModel model) {
-            Velocities v = new Velocities();
-            v.mach = model.GetProperty("velocities/mach-1?");
-            v.p = model.GetProperty("velocities/p-aero-1?");
-            v.q = model.GetProperty("velocities/q-aero-1?");
-            v.r = model.GetProperty("velocities/r-aero-1?");
+            v.alt = model.GetDefaultProperty("position/h-sl-1?");
+            v.terrainAlt = model.GetDefaultProperty("position/terrain-elevation-asl-1?");
             return v;
         }
 
         static FlightControlSys ParseFCS(DynamicsModel model) {
             FlightControlSys f = new FlightControlSys();
-            f.aileronPos = model.GetProperty("fcs/aileron-pos-1?");
-            f.elevatorPos = model.GetProperty("fcs/elevator-pos-1?");
-            f.rudderPos = model.GetProperty("fcs/rudder-pos-1?");
-            f.lefPos = model.GetProperty("fcs/lef-pos-1?");
-            f.flaperonMix = model.GetProperty("fcs/flaperon-mix-1?");
-            f.speedBrakePos = model.GetProperty("fcs/speedbrake-pos-1?");
-            f.gearPos = model.GetProperty("gear/gear-pos-1?");
+            f.aileronPos = model.GetDefaultProperty("fcs/aileron-pos-1?");
+            f.elevatorPos = model.GetDefaultProperty("fcs/elevator-pos-1?");
+            f.rudderPos = model.GetDefaultProperty("fcs/rudder-pos-1?");
+            f.leadEdgeFlapPos = model.GetDefaultProperty("fcs/lef-pos-1?");
+            f.flaperonMix = model.GetDefaultProperty("fcs/flaperon-mix-1?");
+            f.speedBrakePos = model.GetDefaultProperty("fcs/speedbrake-pos-1?");
+            f.gearPos = model.GetDefaultProperty("gear/gear-pos-1?");
             return f;
         }
 
@@ -170,7 +163,7 @@ namespace MinimalJSim {
 
         static Function ParseFunction(DynamicsModel model, function func) {
             Function f = ParseFunctionGroup(model, func.Item);
-            if (f is not null) {
+            if (f != null) {
                 f.identifier = func.name;
                 f.description = func.description;
             }
@@ -199,11 +192,11 @@ namespace MinimalJSim {
                         p.value *= (float)d;
                         break;
                     case string s:
-                        properties.Add(model.GetProperty(s));
+                        properties.Add(model.GetDefaultProperty(s));
                         break;
                     default:
                         Function func = ParseFunctionGroup(model, item);
-                        if (func is not null) {
+                        if (func != null) {
                             functions.Add(func);
                         }
                         break;
@@ -218,19 +211,19 @@ namespace MinimalJSim {
             switch (obj.independentVar.Length) {
                 case 1:
                     Table1 t1 = new Table1();
-                    t1.var = model.GetProperty(obj.independentVar[0].Text[0]);
+                    t1.var = model.GetDefaultProperty(obj.independentVar[0].Text[0]);
                     ParseTableData(obj.tableData[0].Value, out t1.row, out t1.value);
-                    t1.InitDiff();
+                    t1.Init();
                     return t1;
                 case 2:
                     Table2 t2 = new Table2();
                     foreach (independentVar v in obj.independentVar) {
                         switch (v.lookup) {
                             case "row":
-                                t2.varRow = model.GetProperty(v.Text[0]);
+                                t2.varRow = model.GetDefaultProperty(v.Text[0]);
                                 break;
                             case "column":
-                                t2.varCol = model.GetProperty(v.Text[0]);
+                                t2.varCol = model.GetDefaultProperty(v.Text[0]);
                                 break;
                             default:
                                 Logger.Error("unkown table lookup type", v.lookup);
@@ -238,7 +231,7 @@ namespace MinimalJSim {
                         }
                     }
                     ParseTableData(obj.tableData[0].Value, out t2.row, out t2.col, out t2.value);
-                    t2.InitDiff();
+                    t2.Init();
                     return t2;
                 default:
                     Logger.Error("unkown table type, len(vars)={0}", obj.independentVar.Length);
@@ -251,8 +244,9 @@ namespace MinimalJSim {
             string[] lines = data.Trim().Split('\n');
             row = new float[lines.Length];
             v = new float[lines.Length];
+            char[] sep = { ' ', '\t' };
             for (int i = 0; i < lines.Length; i++) {
-                string[] arr = lines[i].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                string[] arr = lines[i].Trim().Split(sep, StringSplitOptions.RemoveEmptyEntries);
                 row[i] = float.Parse(arr[0]);
                 v[i] = float.Parse(arr[1]);
             }
@@ -260,7 +254,8 @@ namespace MinimalJSim {
 
         static void ParseTableData(string data, out float[] row, out float[] col, out float[,] v) {
             string[] lines = data.Trim().Split('\n');
-            string[] arr = lines[0].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            char[] sep = { ' ', '\t' };
+            string[] arr = lines[0].Trim().Split(sep, StringSplitOptions.RemoveEmptyEntries);
             int n = lines.Length - 1;
             int m = arr.Length;
             row = new float[n];
@@ -270,7 +265,7 @@ namespace MinimalJSim {
                 col[j] = float.Parse(arr[j]);
             }
             for (int i = 0; i < n; i++) {
-                arr = lines[i + 1].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                arr = lines[i + 1].Trim().Split(sep, StringSplitOptions.RemoveEmptyEntries);
                 row[i] = float.Parse(arr[0]);
                 for (int j = 0; j < m; j++) {
                     v[i, j] = float.Parse(arr[j + 1]);
