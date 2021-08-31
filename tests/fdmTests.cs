@@ -5,7 +5,7 @@ namespace MinimalJSim {
     class fdm_configTest {
         public static void TestReadXML() {
             Logger.Init();
-            string path = "./xmls/737.xml";
+            string path = "./xmls/c172p.xml";
             fdm_config config = DynamicsModel.Deserialize(path);
             DynamicsModel model = DynamicsModel.Parse(config);
             model.motion.vel = new Vector3(0, 0, 0);

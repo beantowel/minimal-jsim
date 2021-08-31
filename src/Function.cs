@@ -83,6 +83,38 @@ namespace MinimalJSim {
         }
     }
 
+    class Sum : Function {
+        public Property[] properties;
+        public Function[] functions;
+        public float value;
+
+        public Sum() : base(FuncType.Sum) {
+            value = 0;
+        }
+
+        public override float Eval() {
+            float v = value;
+            foreach (Function func in functions) {
+                v += func.Eval();
+            }
+            foreach (Property prop in properties) {
+                v += prop.Value;
+            }
+            return v;
+        }
+
+        public override List<string> Dependency() {
+            List<string> d = new List<string>();
+            foreach (Property p in properties) {
+                d.Add(p.identifier);
+            }
+            foreach (Function f in functions) {
+                d.AddRange(f.Dependency());
+            }
+            return d;
+        }
+    }
+
     class Table1 : Function {
         public Property var;
         public float[] row, value;

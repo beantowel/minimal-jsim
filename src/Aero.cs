@@ -11,7 +11,7 @@ namespace MinimalJSim {
 
         public void UpdateProperty(DynamicsModel model) {
             alpha.Value = (float)Math.Atan2(model.motion.vel.Z, model.motion.vel.X);
-            beta.Value = (float)Math.Atan2(model.motion.vel.Y, model.motion.vel.X);
+            beta.Value = (float)Math.Atan2(-model.motion.vel.Y, model.motion.vel.X);
 
             float twoVel = model.motion.vel.Length() * 2;
             if (twoVel != 0) {

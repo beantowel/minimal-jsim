@@ -174,10 +174,12 @@ namespace MinimalJSim {
             switch (obj) {
                 case product o:
                     return ParseFunctionGroup(model, o);
+                case sum o:
+                    return ParseFunctionGroup(model, o);
                 case table o:
                     return ParseFunctionGroup(model, o);
                 default:
-                    Logger.Error("unknown function type", obj);
+                    Logger.Error("unknown function type, obj={0}", obj);
                     return null;
             }
         }
@@ -190,6 +192,31 @@ namespace MinimalJSim {
                 switch (item) {
                     case double d:
                         p.value *= (float)d;
+                        break;
+                    case string s:
+                        properties.Add(model.GetDefaultProperty(s));
+                        break;
+                    default:
+                        Function func = ParseFunctionGroup(model, item);
+                        if (func != null) {
+                            functions.Add(func);
+                        }
+                        break;
+                }
+            }
+            p.properties = properties.ToArray();
+            p.functions = functions.ToArray();
+            return p;
+        }
+
+        static Function ParseFunctionGroup(DynamicsModel model, sum obj) {
+            Sum p = new Sum();
+            List<Property> properties = new List<Property>();
+            List<Function> functions = new List<Function>();
+            foreach (var item in obj.Items) {
+                switch (item) {
+                    case double d:
+                        p.value += (float)d;
                         break;
                     case string s:
                         properties.Add(model.GetDefaultProperty(s));
