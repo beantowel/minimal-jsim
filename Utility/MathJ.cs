@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 
 namespace MinimalJSim {
-    class Matrix3x3 {
+    public class Matrix3x3 {
         public float M11;
         public float M21;
         public float M31;
@@ -65,6 +65,14 @@ namespace MinimalJSim {
             );
         }
 
+        public override string ToString() {
+            return $@"MinimalJSim.Matrix3x3{{
+                {M11}, {M21}, {M31},
+                {M12}, {M22}, {M32},
+                {M13}, {M23}, {M33},
+            }}";
+        }
+
         public static Matrix3x3 operator *(Matrix3x3 m, float x) {
             return new Matrix3x3(
                 m.M11 * x, m.M11 * x, m.M13 * x,
@@ -121,11 +129,27 @@ namespace MinimalJSim {
         }
 
         public Vector3 Row(UInt32 i) {
-            return new Vector3(this[i, 0], this[i, 1], this[i, 2]);
+            switch (i) {
+                case 0:
+                    return new Vector3(M11, M12, M13);
+                case 1:
+                    return new Vector3(M21, M22, M23);
+                case 2:
+                default:
+                    return new Vector3(M31, M32, M33);
+            }
         }
 
         public Vector3 Col(UInt32 i) {
-            return new Vector3(this[0, i], this[1, i], this[2, i]);
+            switch (i) {
+                case 0:
+                    return new Vector3(M11, M21, M31);
+                case 1:
+                    return new Vector3(M12, M22, M32);
+                case 2:
+                default:
+                    return new Vector3(M13, M23, M33);
+            }
         }
     }
 

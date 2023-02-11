@@ -1,6 +1,6 @@
 using System;
 namespace MinimalJSim {
-    public class Atmosphere {
+    public static class Atmosphere {
         // geopotential altitude
         static readonly float[] geoPotAltList = { 0, 11000, 20000, 32000, 47000, 51000, 71000 };
         // standard temperature (kelvin)

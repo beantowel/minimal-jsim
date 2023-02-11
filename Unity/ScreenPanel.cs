@@ -30,7 +30,7 @@ Control: {FormatVector(control)}
 Throttle: {throttle * 100:F0}%
 Force: {FormatVector(fdm.force)}
 Torque: {FormatVector(fdm.torque)}
-Vel: {FormatVector(fdm.model.aero.vel)}
+Vel: {fdm.model.aero.vel}
 Angular: {FormatVector(fdm.model.motion.angular)}
 ";
         }
@@ -40,8 +40,7 @@ Angular: {FormatVector(fdm.model.motion.angular)}
         }
 
         public static string FormatVector(System.Numerics.Vector3 s) {
-            var v = FDM.UVector3(s);
-            return FormatVector(v);
+            return FormatVector(FDM.UVec3(s));
         }
     }
 }

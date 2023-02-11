@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Newtonsoft.Json;
 
 namespace MinimalJSim {
     public struct PropName {
@@ -13,30 +14,8 @@ namespace MinimalJSim {
         public string Key => string.Join("/", nodes) + indexer;
         public string MetricIdentifier => string.Join("/", nodes) + "-1?" + indexer;
         string indexer => isArray ? $"[{index}]" : "";
-    }
 
-    public class Property {
-        public string identifier;
-        float value;
-        public float Val {
-            get => value;
-            set => this.value = value;
-        }
-
-        public Property(PropName name) {
-            this.identifier = name.identifier;
-            value = name.nodes[0] == "tune" ? 1 : 0;
-        }
-
-        public PropName ParseName() {
-            return ParseName(identifier);
-        }
-
-        public override string ToString() {
-            return $"MinimalJSim.Property({identifier}, {value})";
-        }
-
-        public static PropName ParseName(string identifier) {
+        public static PropName Parse(string identifier) {
             var s = identifier;
             int j = s.LastIndexOf('['); // array
             int index = (j != -1) ? Int32.Parse(s.Substring(j + 1).TrimEnd(']')) : 0;
@@ -58,13 +37,31 @@ namespace MinimalJSim {
         }
     }
 
+    public class Property {
+        float value;
+        public float Val {
+            get => value;
+            set => this.value = value;
+        }
+
+        public Property() { }
+
+        public Property(PropName name) {
+            value = name.nodes[0] == "tune" ? 1 : 0;
+        }
+
+        public override string ToString() {
+            return $"MinimalJSim.Property({value})";
+        }
+    }
+
 
     public struct Axis {
         public List<Function> functions;
     }
 
     public class DynamicsModel {
-        public SortedDictionary<string, Property> properties; // property's key should not contain unit
+        public SortedDictionary<string, Property> properties;
         public SortedDictionary<string, Function> functions;
         public Axis[] axes;
         public Vehicle vehicle;
@@ -72,20 +69,24 @@ namespace MinimalJSim {
         public FlightControlSys fcs;
         public Aero aero;
 
+        [JsonIgnore]
+        Dictionary<Property, string> prop2Name; // debug
+
         public DynamicsModel() {
             properties = new SortedDictionary<string, Property>();
             functions = new SortedDictionary<string, Function>();
-            axes = new Axis[7];
-            for (int i = 0; i < 7; i++) {
+            const int n = (int)AxisDimension.Dummy + 1;
+            axes = new Axis[n];
+            for (int i = 0; i < n; i++) {
                 axes[i] = new Axis { functions = new List<Function>() };
             }
         }
 
         public (Vector3 force, Vector3 torque) Eval() {
             var force = new Vector3(
-                EvalAxis(AxisDimension.Drag),
+                -EvalAxis(AxisDimension.Drag),
                 EvalAxis(AxisDimension.Side),
-                EvalAxis(AxisDimension.Lift));
+                -EvalAxis(AxisDimension.Lift));
             var torque = new Vector3(
                 EvalAxis(AxisDimension.Roll),
                 EvalAxis(AxisDimension.Pitch),
@@ -99,25 +100,19 @@ namespace MinimalJSim {
             float x = 0;
             foreach (Function f in axis.functions) {
                 var v = f.Eval();
-                // Logger.Debug($"axis={d}, f={f.identifier}, v={v}");
-                // foreach (var name in f.DependProps()) {
-                //     Logger.Debug($"prop={GetProperty(name)}");
-                // }
                 x += v;
+                if (d == AxisDimension.Pitch) {
+                    Logger.Debug($"axis={d}, f={f.identifier}, v={v}");
+                    foreach (var p in f.DependProps()) {
+                        Logger.Debug($"{prop2Name[p]}={p.Val}");
+                    }
+                }
             }
             return x;
         }
 
-        public Property GetProperty(property prop) {
-            var p = GetProperty(prop.Value);
-            if (prop.valueSpecified) {
-                SetProperty(p.identifier, (float)prop.value);
-            }
-            return p;
-        }
-
         public Property GetProperty(string identifier) {
-            return GetProperty(Property.ParseName(identifier));
+            return GetProperty(PropName.Parse(identifier));
         }
 
         public Property GetProperty(PropName name) {
@@ -131,7 +126,7 @@ namespace MinimalJSim {
         }
 
         public void SetProperty(string identifier, float value) {
-            var name = Property.ParseName(identifier);
+            var name = PropName.Parse(identifier);
             if (!properties.ContainsKey(name.Key)) {
                 Logger.Warn($"prop={identifier} not found");
                 return;
@@ -155,6 +150,13 @@ namespace MinimalJSim {
                 return null;
             }
             return functions[identifier];
+        }
+
+        public void BuildLUT() {
+            prop2Name = new Dictionary<Property, string>(properties.Count);
+            foreach (var kv in properties) {
+                prop2Name[kv.Value] = kv.Key;
+            }
         }
     }
 }

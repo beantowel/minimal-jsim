@@ -8,27 +8,13 @@ namespace MinimalJSim {
         public Property rho, pressure, temperature, qbar, clSquare;
         public Property mach, Re;
         public Function fnKCLge;
-        public Vector3 vel, force;
+        public float vel;
+        public Vector2 rotation;
+        public Vector3 force;
 
         public float IAS => (float)Math.Sqrt(2 * qbar.Val / Atmosphere.Density(0));
 
-        public Vector3 forceWind => (body2Wind * force) * new Vector3(-1, 1, -1);
-
-        Matrix3x3 body2Wind {
-            get {
-                float ca = (float)Math.Cos(alpha.Val);
-                float sa = (float)Math.Sin(alpha.Val);
-                float cb = (float)Math.Sin(beta.Val);
-                float sb = (float)Math.Sin(beta.Val);
-                var m = new Matrix3x3(
-                    ca * cb, -ca * sb, -sa,
-                    sb, cb, 0,
-                    sa * cb, -sa * sb, ca
-                );
-                return Matrix3x3.Transpose(m);
-            }
-        }
-
+        public Aero() { }
         public Aero(DynamicsModel model) {
             // bind properties
             alpha = model.GetProperty("aero/alpha-1?");
@@ -52,26 +38,25 @@ namespace MinimalJSim {
         public void UpdateProperty(DynamicsModel model, float deltaT) {
             var motion = model.motion;
             var vehicle = model.vehicle;
-            float twoVel = vel.Length() * 2;
+            float twoVel = vel * 2;
             twoVel = (twoVel == 0) ? 1 : twoVel;
             deltaT = (deltaT == 0) ? 1 : deltaT;
 
-            float alpha0 = (float)Math.Atan2(vel.Z, vel.X);
-            float beta0 = (float)Math.Atan2(-vel.Y, vel.X);
-            alphaDot.Val = (alpha0 - alpha.Val) / deltaT;
-            betaDot.Val = (beta0 - beta.Val) / deltaT;
-            alpha.Val = alpha0;
-            beta.Val = beta0;
+            alphaDot.Val = (rotation.X - alpha.Val) / deltaT;
+            betaDot.Val = (rotation.Y - beta.Val) / deltaT;
+            alpha.Val = rotation.X;
+            beta.Val = rotation.Y;
             bi2vel.Val = vehicle.WingSpan.Val / twoVel;
             ci2vel.Val = vehicle.WingChord.Val / twoVel;
 
             (pressure.Val, temperature.Val) = Atmosphere.GetPressureTemp(motion.alt.Val);
             rho.Val = Atmosphere.Density(pressure.Val, temperature.Val);
-            qbar.Val = rho.Val * vel.LengthSquared() / 2;
-            clSquare.Val = qbar.Val > 1 ? forceWind.Z / (vehicle.WingArea.Val * qbar.Val) : clSquare.Val;
-            mach.Val = (float)vel.Length() / Atmosphere.SoundSpeed(temperature.Val);
+            qbar.Val = rho.Val * vel * vel / 2;
+            mach.Val = vel / Atmosphere.SoundSpeed(temperature.Val);
+
             float kinematicViscosity = Atmosphere.Viscosity(temperature.Val) / rho.Val;
-            Re.Val = vel.Length() * vehicle.WingChord.Val / kinematicViscosity;
+            // clSquare.Val = qbar.Val > 1 ? forceWind.Z / (vehicle.WingArea.Val * qbar.Val) : clSquare.Val;
+            Re.Val = vel * vehicle.WingChord.Val / kinematicViscosity;
 
             hbMac.Val = (motion.alt.Val - motion.terrainAlt.Val) / vehicle.WingChord.Val;
             kCLge.Val = fnKCLge?.Eval() ?? 0;

@@ -12,6 +12,7 @@ namespace MinimalJSim {
         public Quaternion massFrame;
         public Vector3 centerOfMass;
 
+        public Vehicle() { }
         public Vehicle(DynamicsModel model, metrics cm, mass_balance m) {
             WingArea = model.GetProperty("metrics/Sw-1?");
             WingSpan = model.GetProperty("metrics/bw-1?");

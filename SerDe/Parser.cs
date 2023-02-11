@@ -9,7 +9,7 @@ namespace MinimalJSim {
 
             var model = new DynamicsModel();
             // functions
-            foreach (var func in conf.aerodynamics.function) {
+            foreach (var func in conf.aerodynamics.function ?? new function[] { }) {
                 // dummy axis
                 Function f = ParseFunction(model, func);
                 model.AddFunction(f, MinimalJSim.AxisDimension.Dummy);
@@ -77,7 +77,7 @@ namespace MinimalJSim {
                 case lt o:
                     return ParseBool(model, FuncType.lt, o.Items);
                 case property o:
-                    return new PropOrValue(model.GetProperty(o));
+                    return ParseProp(model, o);
                 case double o:
                     return new PropOrValue((float)o);
                 case ifthen o:
@@ -89,6 +89,14 @@ namespace MinimalJSim {
                     Logger.ErrorObj($"unknown function type={obj.GetType()}", obj);
                     return null;
             }
+        }
+
+        static Function ParseProp(DynamicsModel model, property p) {
+            var prop = model.GetProperty(p.Value);
+            if (p.valueSpecified) {
+                model.SetProperty(p.Value, (float)p.value);
+            }
+            return new PropOrValue(prop);
         }
 
         static Function ParseUnary(DynamicsModel model, FuncType typ, object obj) {
@@ -127,7 +135,7 @@ namespace MinimalJSim {
             switch (obj.independentVar.Length) {
                 case 1:
                     Table1 t1 = new Table1();
-                    var name = Property.ParseName(obj.independentVar[0].Text[0]);
+                    var name = PropName.Parse(obj.independentVar[0].Text[0]);
                     t1.var = model.GetProperty(name);
                     ParseTableData(obj.tableData[0].Value, out t1.row, out t1.value);
                     t1.Init(Units.ToMetric(name.unit));
@@ -149,15 +157,15 @@ namespace MinimalJSim {
         }
 
         static void ParseTableVar(DynamicsModel model, independentVar[] vars, out PropName row, out PropName col) {
-            row = Property.ParseName("not_found");
-            col = Property.ParseName("not_found");
+            row = PropName.Parse("not_found");
+            col = PropName.Parse("not_found");
             foreach (var v in vars) {
                 switch (v.lookup) {
                     case "row":
-                        row = Property.ParseName(v.Text[0]);
+                        row = PropName.Parse(v.Text[0]);
                         break;
                     case "column":
-                        col = Property.ParseName(v.Text[0]);
+                        col = PropName.Parse(v.Text[0]);
                         break;
                     default:
                         Logger.Error($"unknown table lookup type={v.lookup}");

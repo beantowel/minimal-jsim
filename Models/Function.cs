@@ -53,15 +53,14 @@ namespace MinimalJSim {
     }
 
     public abstract class Function {
-        public FuncType fType;
         public string identifier, description;
 
-        public Function(FuncType type) { fType = type; }
+        public Function() { }
         public abstract float Eval();
         public abstract Function[] Dependency();
-        public List<string> DependProps() {
+        public List<Property> DependProps() {
             Function[] empty = { };
-            var props = new List<string>();
+            var props = new List<Property>();
             Queue<Function> q = new Queue<Function>(); // bfs
             foreach (var dep in Dependency() ?? empty) {
                 q.Enqueue(dep);
@@ -70,7 +69,7 @@ namespace MinimalJSim {
                 var f = q.Dequeue();
                 if (f is PropOrValue pv) {
                     if (!pv.isValue) {
-                        props.Add(pv.prop.identifier);
+                        props.Add(pv.prop);
                     }
                 }
                 foreach (var dep in f.Dependency() ?? empty) {
@@ -86,12 +85,13 @@ namespace MinimalJSim {
         public Property prop;
         public bool isValue;
 
-        public PropOrValue(float value) : base(FuncType.property) {
+        public PropOrValue() { }
+        public PropOrValue(float value) {
             this.value = value;
             isValue = true;
         }
 
-        public PropOrValue(Property prop) : base(FuncType.property) {
+        public PropOrValue(Property prop) {
             this.prop = prop;
             isValue = false;
         }
@@ -108,9 +108,12 @@ namespace MinimalJSim {
     class CommutativeOperator : Function {
         public Function[] functions;
         public float initial;
-        int n;
+        public FuncType typ;
+        public int n;
 
-        public CommutativeOperator(FuncType typ, List<Function> fs) : base(typ) {
+        public CommutativeOperator() { }
+        public CommutativeOperator(FuncType typ, List<Function> fs) {
+            this.typ = typ;
             initial = Zero(fs);
             n = fs.Count;
 
@@ -132,7 +135,7 @@ namespace MinimalJSim {
         }
 
         float Zero(List<Function> fs) {
-            switch (fType) {
+            switch (typ) {
                 case FuncType.product:
                     return 1;
                 default:
@@ -141,7 +144,7 @@ namespace MinimalJSim {
         }
 
         float Operate(float a, float b) {
-            switch (fType) {
+            switch (typ) {
                 case FuncType.product:
                     return a * b;
                 case FuncType.sum:
@@ -169,11 +172,11 @@ namespace MinimalJSim {
     class Table1 : Function {
         public Property var;
         public float[] row, value;
-        float[] rRowDiff;
+        public float[] rRowDiff;
 
-        public Table1() : base(FuncType.table) { }
+        public Table1() { }
 
-        public Table1(in float[] _row, in float[] _value) : base(FuncType.table) {
+        public Table1(in float[] _row, in float[] _value) {
             row = _row;
             value = _value;
         }
@@ -209,9 +212,9 @@ namespace MinimalJSim {
         public Property varRow, varCol;
         public float[] row, col;
         public float[,] value;
-        float[] rRowDiff, rColDiff;
+        public float[] rRowDiff, rColDiff;
 
-        public Table2() : base(FuncType.table) { }
+        public Table2() { }
 
         public void Init(float rScale, float cScale) {
             MathJ.ScaleArray(row, rScale);
@@ -261,14 +264,17 @@ namespace MinimalJSim {
 
     class BoolOperator : Function {
         public Function first, second;
+        public FuncType typ;
 
-        public BoolOperator(FuncType t, Function l, Function r) : base(t) {
+        public BoolOperator() { }
+        public BoolOperator(FuncType t, Function l, Function r) {
+            typ = t;
             first = l;
             second = r;
         }
 
         bool Operate(float l, float r) {
-            switch (fType) {
+            switch (typ) {
                 case FuncType.lt:
                     return l < r;
                 case FuncType.le:
@@ -297,10 +303,13 @@ namespace MinimalJSim {
 
     class BinaryOperator : Function {
         public Function first, second;
+        public FuncType typ;
 
-        public BinaryOperator(FuncType t, Function l, Function r) : base(t) {
+        public BinaryOperator() { }
+        public BinaryOperator(FuncType t, Function l, Function r) {
             first = l;
             second = r;
+            typ = t;
         }
 
         public static float Zero(FuncType t) {
@@ -314,7 +323,7 @@ namespace MinimalJSim {
         }
 
         float Operate(float l, float r) {
-            switch (fType) {
+            switch (typ) {
                 case FuncType.pow:
                     return (float)Math.Pow(l, r);
                 case FuncType.quotient:
@@ -337,13 +346,16 @@ namespace MinimalJSim {
 
     class UnaryOperator : Function {
         public Function f;
+        public FuncType typ;
 
-        public UnaryOperator(FuncType t, Function f) : base(t) {
+        public UnaryOperator() { }
+        public UnaryOperator(FuncType t, Function f) {
+            typ = t;
             this.f = f;
         }
 
         float Operate(float v) {
-            switch (fType) {
+            switch (typ) {
                 case FuncType.abs:
                     return (float)Math.Abs(v);
                 case FuncType.acos:
@@ -379,7 +391,8 @@ namespace MinimalJSim {
     class IfThen : Function {
         public Function[] func;
 
-        public IfThen(Function a, Function b, Function c) : base(FuncType.product) {
+        public IfThen() { }
+        public IfThen(Function a, Function b, Function c) {
             func = new Function[] { a, b, c };
         }
 

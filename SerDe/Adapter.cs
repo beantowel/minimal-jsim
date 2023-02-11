@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Numerics;
 using System.Xml.Serialization;
+using Newtonsoft.Json;
 
 namespace MinimalJSim {
     public static class Adapter {
@@ -11,6 +9,25 @@ namespace MinimalJSim {
             v = (T)serializer.Deserialize(reader);
             reader.Close();
         }
+
+        public static DynamicsModel LoadJSON(string s) {
+            var m = JsonConvert.DeserializeObject<DynamicsModel>(s, Settings);
+            return m;
+        }
+
+        public static void Export(DynamicsModel model, string path) {
+            var json = JsonConvert.SerializeObject(model, Settings);
+            path += "-exp.json";
+            File.WriteAllText(path, json);
+            Logger.Debug($"export to path={path}");
+        }
+
+        static JsonSerializerSettings Settings =>
+            new JsonSerializerSettings {
+                Formatting = Formatting.Indented,
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                TypeNameHandling = TypeNameHandling.Auto,
+            };
 
         public static void ExpandInclude(fdm_config conf, string rootPath) {
             for (int i = 0; i < conf.propulsion.Items.Length; i++) {

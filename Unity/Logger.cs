@@ -1,5 +1,4 @@
 using Newtonsoft.Json;
-using UnityEngine;
 
 namespace MinimalJSim {
     class Logger {
@@ -16,13 +15,19 @@ namespace MinimalJSim {
         }
 
         public static void DebugObj(object message, object obj) {
-            var json = JsonConvert.SerializeObject(obj);
+            var json = JsonConvert.SerializeObject(obj, Settings);
             Debug($"{message}, obj={json}");
         }
 
         public static void ErrorObj(object message, object obj) {
-            var json = JsonConvert.SerializeObject(obj);
+            var json = JsonConvert.SerializeObject(obj, Settings);
             Error($"{message}, obj={json}");
         }
+
+        static JsonSerializerSettings Settings =>
+            new JsonSerializerSettings {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                TypeNameHandling = TypeNameHandling.Auto,
+            };
     }
 }

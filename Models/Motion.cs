@@ -3,10 +3,11 @@ using System.Numerics;
 namespace MinimalJSim {
     public class Motion {
         public Vector3 angular;
-        public Property p, q, r; // angular velocity <p(roll), q(pitch), r(yaw)> for axis <x, y, z>
+        public Property p, q, r; // angular velocity <p(roll), q(pitch), r(yaw)> in body frame
         public Property roll;
         public Property alt, terrainAlt, height; // sea-level geometric altitude, terrain elevation;
 
+        public Motion() { }
         public Motion(DynamicsModel model) {
             p = model.GetProperty("velocities/p-aero-1?");
             q = model.GetProperty("velocities/q-aero-1?");
