@@ -9,13 +9,13 @@ namespace MinimalJSim {
         public Property mach, Re;
         public Function fnKCLge;
         public float vel;
-        public Vector2 rotation;
+        public Vector4 rotation;
         public Vector3 force;
 
         public float IAS => (float)Math.Sqrt(2 * qbar.Val / Atmosphere.Density(0));
 
         public Aero() { }
-        public Aero(DynamicsModel model) {
+        public Aero(DModel model) {
             // bind properties
             alpha = model.GetProperty("aero/alpha-1?");
             beta = model.GetProperty("aero/beta-1?");
@@ -35,17 +35,16 @@ namespace MinimalJSim {
             mach = model.GetProperty("velocities/mach-1?");
         }
 
-        public void UpdateProperty(DynamicsModel model, float deltaT) {
+        public void UpdateProperty(DModel model) {
             var motion = model.motion;
             var vehicle = model.vehicle;
             float twoVel = vel * 2;
             twoVel = (twoVel == 0) ? 1 : twoVel;
-            deltaT = (deltaT == 0) ? 1 : deltaT;
 
-            alphaDot.Val = (rotation.X - alpha.Val) / deltaT;
-            betaDot.Val = (rotation.Y - beta.Val) / deltaT;
             alpha.Val = rotation.X;
             beta.Val = rotation.Y;
+            alphaDot.Val = rotation.Z;
+            betaDot.Val = rotation.W;
             bi2vel.Val = vehicle.WingSpan.Val / twoVel;
             ci2vel.Val = vehicle.WingChord.Val / twoVel;
 
@@ -55,7 +54,7 @@ namespace MinimalJSim {
             mach.Val = vel / Atmosphere.SoundSpeed(temperature.Val);
 
             float kinematicViscosity = Atmosphere.Viscosity(temperature.Val) / rho.Val;
-            // clSquare.Val = qbar.Val > 1 ? forceWind.Z / (vehicle.WingArea.Val * qbar.Val) : clSquare.Val;
+            clSquare.Val = qbar.Val > 1 ? force.Z / (vehicle.WingArea.Val * qbar.Val) : clSquare.Val;
             Re.Val = vel * vehicle.WingChord.Val / kinematicViscosity;
 
             hbMac.Val = (motion.alt.Val - motion.terrainAlt.Val) / vehicle.WingChord.Val;

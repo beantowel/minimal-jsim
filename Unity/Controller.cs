@@ -18,7 +18,7 @@ namespace MinimalJSim {
         }
 
         public Axis[] axes = new Axis[] {
-            new Axis{pos = KeyCode.W, neg = KeyCode.S, isRelative = false},
+            new Axis{pos = KeyCode.W, neg = KeyCode.S, isRelative = true},
             new Axis{pos = KeyCode.A, neg = KeyCode.D},
             new Axis{pos = KeyCode.Q, neg = KeyCode.E, isRelative = false},
             new Axis{pos = KeyCode.Equals, neg = KeyCode.Minus, isRelative = true},
@@ -50,7 +50,7 @@ namespace MinimalJSim {
                 float v = axes[(int)channel].value;
                 switch (channel) {
                     case AxisChannel.Pitch:
-                        fcs.elevatorPos.Val = v * 0.436f;
+                        fcs.elevatorPos.Val = v * 1f;
                         break;
                     case AxisChannel.Roll:
                         fcs.aileronPosL.Val = -v * 1f;

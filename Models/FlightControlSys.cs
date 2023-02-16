@@ -6,7 +6,7 @@ namespace MinimalJSim {
         public Property aileronPos;
 
         public FlightControlSys() { }
-        public FlightControlSys(DynamicsModel model) {
+        public FlightControlSys(DModel model) {
             aileronPosL = model.GetProperty("fcs/left-aileron-pos-1?");
             aileronPosR = model.GetProperty("fcs/right-aileron-pos-1?");
             aileronPos = model.GetProperty("fcs/aileron-pos-1?");

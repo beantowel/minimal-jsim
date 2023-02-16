@@ -3,15 +3,31 @@ using System.Numerics;
 namespace MinimalJSim {
     public static class Frames {
         // vel in unity object space
-        public static Vector2 WindRot(Vector3 vel) {
+        public static Vector4 WindRot(Vector3 vel, Vector3 velDot) {
             vel = Obj2Body(vel);
-            float alpha = (float)Math.Atan2(vel.Z, vel.X); // pitch up
-            float beta = (float)Math.Atan2(vel.Y, vel.X); // right slide (yaw left)
-            return new Vector2(alpha, beta);
+            velDot = Obj2Body(velDot);
+            var (u, v, w) = (vel.X, vel.Y, vel.Z);
+            var (du, dv, dw) = (velDot.X, velDot.Y, velDot.Z);
+            float uw = u * u + w * w;
+            float vt = vel.Length();
+
+            float alpha = 0, beta = 0;
+            float aDot = 0, bDot = 0;
+            if (vt > 1e-3) {
+                // yaw left (right slide)
+                beta = (float)Math.Atan2(v, Math.Sqrt(uw));
+                if (uw >= 1e-6) {
+                    // pitch up
+                    alpha = (float)Math.Atan2(w, u);
+                    aDot = (u * dw - w * du) / uw; // d/dx (atan(w/u))
+                    float dvt = (u * du + v * dv + w * dw) / vt; // sqrt(u**2+v**2+w**2)
+                    bDot = (dv * vt - v * dvt) / (vt * (float)Math.Sqrt(uw));
+                }
+            }
+            return new Vector4(alpha, beta, aDot, bDot);
         }
 
-        public static Matrix3x3 Wind2Body(Vector2 rotation) {
-            var (alpha, beta) = (rotation.X, rotation.Y);
+        public static Matrix3x3 Wind2Body(float alpha, float beta) {
             float ca = (float)Math.Cos(alpha);
             float sa = (float)Math.Sin(alpha);
             float cb = (float)Math.Cos(beta);
@@ -21,14 +37,6 @@ namespace MinimalJSim {
                 sb, cb, 0,
                 sa * cb, -sa * sb, ca
             );
-        }
-
-        public static Matrix3x3 Body2Wind(Vector2 rotation) {
-            return Matrix3x3.Transpose(Wind2Body(rotation));
-        }
-
-        public static Matrix3x3 Body2Wind(Matrix3x3 w2b) {
-            return Matrix3x3.Transpose(w2b);
         }
 
         public static Vector3 Cons2Body(Vector3 centerOfMass, Vector3 v) {

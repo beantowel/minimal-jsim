@@ -8,9 +8,10 @@ namespace MinimalJSim {
         public TextAsset FDMData;
 
         public Rigidbody Rb { get; private set; }
-        public DynamicsModel model;
+        public DModel model;
         public Controller controller;
-        public Vector3 force, torque;
+        public float initialVel;
+        Vector3 force, torque, vel;
         System.Numerics.Vector3 frc, trq;
         HUDController hud;
         Overlook.OriginShifter shifter;
@@ -41,25 +42,27 @@ namespace MinimalJSim {
             model = Adapter.LoadJSON(FDMData.text);
             model.BuildLUT();
             Rb = transform.GetComponent<Rigidbody>();
+            Rb.useGravity = true;
             Rb.mass = model.vehicle.emptyWeight.Val;
             Rb.centerOfMass = Vector3.zero;
             Rb.inertiaTensor = UVec3Abs(Frames.Body2Obj(model.vehicle.inertiaTensor));
             Rb.inertiaTensorRotation = UQuat(
                 Frames.Body2Obj(Frames.Cons2Body(model.vehicle.massFrame)));
             Rb.maxAngularVelocity = 7;
-            Rb.velocity = transform.forward * 200;
+            Rb.velocity = transform.forward * initialVel;
 
             controller = new Controller(model.fcs);
-            controller.axes[(int)Controller.AxisChannel.Throttle].value = 0.5f;
             hud = transform.Find("HUD")?.GetComponent<HUDController>();
         }
 
         void FixedUpdate() {
             controller.UpdateChannel();
 
-            Vector3 vel = transform.InverseTransformVector(Rb.velocity);
-            var rot = Frames.WindRot(SVec3(vel));
-            var w2b = Frames.Wind2Body(rot);
+            Vector3 newVel = transform.InverseTransformVector(Rb.velocity);
+            Vector3 dv = (newVel - vel) / Time.fixedDeltaTime;
+            vel = newVel;
+            var rot = Frames.WindRot(SVec3(vel), SVec3(dv));
+            var w2b = Frames.Wind2Body(rot.X, rot.Y);
             // update property
             model.aero.force = frc;
             model.aero.rotation = rot;
@@ -68,19 +71,18 @@ namespace MinimalJSim {
                 transform.InverseTransformVector(Rb.angularVelocity))));
             model.motion.roll.Val = Rb.rotation.eulerAngles.z * Mathf.Deg2Rad;
             model.motion.alt.Val = Rb.position.y - (float)shifter.WorldOrigin.y;
-            model.motion.terrainAlt.Val = geo.GetHeight(shifter.WorldOrigin + transform.position);
-            model.UpdateProperty(Time.deltaTime);
+            model.motion.terrainAlt.Val = geo.GetHeight(-(shifter.WorldOrigin - transform.position));
+            model.UpdateProperty();
             (frc, trq) = model.Eval();
 
             force = UVec3(Frames.Body2Obj(w2b * frc));
             torque = UVec3(Frames.FlipHandedness(Frames.Body2Obj(trq)));
-            Logger.Debug($"rot={rot}, vel={vel}");
-            Logger.Debug($"angular={model.motion.angular}, p={model.motion.p}");
-            Logger.Debug($"trq={trq}, torque={torque}");
             force.z += controller.axes[(int)Controller.AxisChannel.Throttle].value * 80000;
             Rb.AddRelativeForce(force, ForceMode.Force);
             Rb.AddRelativeTorque(torque, ForceMode.Force);
             UpdateMonitor();
+            // Logger.Debug($"frc={frc} vel={vel.magnitude} alpha={model.aero.alpha.Val} beta={model.aero.beta.Val}");
+            // Logger.Debug($"rho={model.aero.rho.Val} prs={model.aero.pressure.Val}");
         }
 
         void UpdateMonitor() {

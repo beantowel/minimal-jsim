@@ -60,7 +60,7 @@ namespace MinimalJSim {
         public List<Function> functions;
     }
 
-    public class DynamicsModel {
+    public class DModel {
         public SortedDictionary<string, Property> properties;
         public SortedDictionary<string, Function> functions;
         public Axis[] axes;
@@ -72,7 +72,7 @@ namespace MinimalJSim {
         [JsonIgnore]
         Dictionary<Property, string> prop2Name; // debug
 
-        public DynamicsModel() {
+        public DModel() {
             properties = new SortedDictionary<string, Property>();
             functions = new SortedDictionary<string, Function>();
             const int n = (int)AxisDimension.Dummy + 1;
@@ -101,12 +101,12 @@ namespace MinimalJSim {
             foreach (Function f in axis.functions) {
                 var v = f.Eval();
                 x += v;
-                if (d == AxisDimension.Pitch) {
-                    Logger.Debug($"axis={d}, f={f.identifier}, v={v}");
-                    foreach (var p in f.DependProps()) {
-                        Logger.Debug($"{prop2Name[p]}={p.Val}");
-                    }
-                }
+                // if (d == AxisDimension.Side) {
+                //     Logger.Debug($"axis={d}, f={f.identifier}, v={v}");
+                //     foreach (var p in f.DependProps()) {
+                //         Logger.Debug($"{prop2Name[p]}={p.Val}");
+                //     }
+                // }
             }
             return x;
         }
@@ -134,9 +134,9 @@ namespace MinimalJSim {
             properties[name.Key].Val = value;
         }
 
-        public void UpdateProperty(float deltaT) {
+        public void UpdateProperty() {
             motion.UpdateProperty(this);
-            aero.UpdateProperty(this, deltaT);
+            aero.UpdateProperty(this);
         }
 
         public void AddFunction(Function f, AxisDimension axis) {

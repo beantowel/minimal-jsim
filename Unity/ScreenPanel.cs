@@ -24,14 +24,12 @@ namespace MinimalJSim {
             float yaw = fdm.controller.axes[(int)Controller.AxisChannel.Yaw].value;
             Vector3 control = new Vector3(pitch, roll, yaw);
 
-            text.text = $@"Speed: {fdm.Rb.velocity.magnitude * 3.6:F2}
-Qbar: {fdm.model.aero.qbar.Val:F2}, mach: {fdm.model.aero.mach.Val:F2}
-Control: {FormatVector(control)}
+            text.text = $@"TAS: {fdm.Rb.velocity.magnitude * 3.6:F0}
+ALT: {fdm.model.motion.alt.Val:F0}
+HDG: {fdm.Rb.rotation.eulerAngles.y:F0}
+mach: {fdm.model.aero.mach.Val:F2}
 Throttle: {throttle * 100:F0}%
-Force: {FormatVector(fdm.force)}
-Torque: {FormatVector(fdm.torque)}
-Vel: {fdm.model.aero.vel}
-Angular: {FormatVector(fdm.model.motion.angular)}
+Origin: {Overlook.OriginShifter.Get().WorldOrigin.Length}
 ";
         }
 

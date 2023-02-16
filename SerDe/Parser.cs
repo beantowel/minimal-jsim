@@ -4,10 +4,10 @@ using System.Numerics;
 
 namespace MinimalJSim {
     public static class Parser {
-        public static DynamicsModel Parse(fdm_config conf) {
+        public static DModel Parse(fdm_config conf) {
             Logger.Debug("start parse model");
 
-            var model = new DynamicsModel();
+            var model = new DModel();
             // functions
             foreach (var func in conf.aerodynamics.function ?? new function[] { }) {
                 // dummy axis
@@ -49,7 +49,7 @@ namespace MinimalJSim {
             }
         }
 
-        static Function ParseFunction(DynamicsModel model, function func) {
+        static Function ParseFunction(DModel model, function func) {
             Function f = ParseFunctionGroup(model, func.Item);
             if (f != null) {
                 f.identifier = func.name;
@@ -58,7 +58,7 @@ namespace MinimalJSim {
             return f;
         }
 
-        static Function ParseFunctionGroup(DynamicsModel model, object obj) {
+        static Function ParseFunctionGroup(DModel model, object obj) {
             switch (obj) {
                 case product o:
                     return ParseCommutative(model, FuncType.product, o.Items);
@@ -91,7 +91,7 @@ namespace MinimalJSim {
             }
         }
 
-        static Function ParseProp(DynamicsModel model, property p) {
+        static Function ParseProp(DModel model, property p) {
             var prop = model.GetProperty(p.Value);
             if (p.valueSpecified) {
                 model.SetProperty(p.Value, (float)p.value);
@@ -99,11 +99,11 @@ namespace MinimalJSim {
             return new PropOrValue(prop);
         }
 
-        static Function ParseUnary(DynamicsModel model, FuncType typ, object obj) {
+        static Function ParseUnary(DModel model, FuncType typ, object obj) {
             return new UnaryOperator(typ, ParseFunctionGroup(model, obj));
         }
 
-        static Function ParseBinary(DynamicsModel model, FuncType typ, object[] objs) {
+        static Function ParseBinary(DModel model, FuncType typ, object[] objs) {
             Function l, r;
             if (objs.Length == 1) {
                 l = new PropOrValue(BinaryOperator.Zero(typ));
@@ -115,12 +115,12 @@ namespace MinimalJSim {
             return new BinaryOperator(typ, l, r);
         }
 
-        static Function ParseBool(DynamicsModel model, FuncType typ, object[] objs) {
+        static Function ParseBool(DModel model, FuncType typ, object[] objs) {
             return new BoolOperator(typ,
                 ParseFunctionGroup(model, objs[0]), ParseFunctionGroup(model, objs[1]));
         }
 
-        static Function ParseCommutative(DynamicsModel model, FuncType typ, object[] objs) {
+        static Function ParseCommutative(DModel model, FuncType typ, object[] objs) {
             List<Function> functions = new List<Function>();
             foreach (var obj in objs) {
                 Function func = ParseFunctionGroup(model, obj);
@@ -131,7 +131,7 @@ namespace MinimalJSim {
             return new CommutativeOperator(typ, functions);
         }
 
-        static Function ParseTable(DynamicsModel model, table obj) {
+        static Function ParseTable(DModel model, table obj) {
             switch (obj.independentVar.Length) {
                 case 1:
                     Table1 t1 = new Table1();
@@ -156,7 +156,7 @@ namespace MinimalJSim {
             return null;
         }
 
-        static void ParseTableVar(DynamicsModel model, independentVar[] vars, out PropName row, out PropName col) {
+        static void ParseTableVar(DModel model, independentVar[] vars, out PropName row, out PropName col) {
             row = PropName.Parse("not_found");
             col = PropName.Parse("not_found");
             foreach (var v in vars) {

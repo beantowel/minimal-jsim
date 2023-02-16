@@ -10,12 +10,12 @@ namespace MinimalJSim {
             reader.Close();
         }
 
-        public static DynamicsModel LoadJSON(string s) {
-            var m = JsonConvert.DeserializeObject<DynamicsModel>(s, Settings);
+        public static DModel LoadJSON(string s) {
+            var m = JsonConvert.DeserializeObject<DModel>(s, Settings);
             return m;
         }
 
-        public static void Export(DynamicsModel model, string path) {
+        public static void Export(DModel model, string path) {
             var json = JsonConvert.SerializeObject(model, Settings);
             path += "-exp.json";
             File.WriteAllText(path, json);

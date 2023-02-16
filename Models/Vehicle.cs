@@ -13,7 +13,7 @@ namespace MinimalJSim {
         public Vector3 centerOfMass;
 
         public Vehicle() { }
-        public Vehicle(DynamicsModel model, metrics cm, mass_balance m) {
+        public Vehicle(DModel model, metrics cm, mass_balance m) {
             WingArea = model.GetProperty("metrics/Sw-1?");
             WingSpan = model.GetProperty("metrics/bw-1?");
             WingIncidence = model.GetProperty("metrics/iw-deg");

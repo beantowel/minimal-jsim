@@ -8,7 +8,7 @@ namespace MinimalJSim {
         public Property alt, terrainAlt, height; // sea-level geometric altitude, terrain elevation;
 
         public Motion() { }
-        public Motion(DynamicsModel model) {
+        public Motion(DModel model) {
             p = model.GetProperty("velocities/p-aero-1?");
             q = model.GetProperty("velocities/q-aero-1?");
             r = model.GetProperty("velocities/r-aero-1?");
@@ -19,7 +19,7 @@ namespace MinimalJSim {
             height = model.GetProperty("position/h-agl-1?");
         }
 
-        public void UpdateProperty(DynamicsModel _) {
+        public void UpdateProperty(DModel _) {
             (p.Val, q.Val, r.Val) = (angular.X, angular.Y, angular.Z);
             height.Val = alt.Val - terrainAlt.Val;
         }
